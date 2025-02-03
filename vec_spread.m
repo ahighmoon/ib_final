@@ -1,8 +1,7 @@
 function f=vec_spread(F,X)
 % spread F to grid
-global h N dtheta Nb;
-
-c=dtheta/(h*h);
+global h N ds Nb;
+c=ds/(h*h);
 f=zeros(N,N,2);
 
 s=X/h; % Get body position relative to grid
