@@ -3,6 +3,19 @@
 % Original Code by Charlie Peskin:
 % https://www.math.nyu.edu/faculty/peskin/ib_lecture_notes/index.html
 % Vectorized and commented by Tristan Goodwill,2019.4
+
+% This new version of the code is written by Yifei Zhu for the NYU ib course.
+% add visualization options and video generation
+
+%% Video setup
+currentTime = datetime('now');
+postfix = sprintf('_%02d%02d-%02d%02d%02d', currentTime.Month, currentTime.Day, currentTime.Hour, currentTime.Minute, floor(currentTime.Second));
+videoName = ['./video/ib_final', postfix, '.avi'];
+vidObj = VideoWriter(videoName, 'Motion JPEG AVI');
+vidObj.FrameRate = 40;
+vidObj.Quality = 95;
+open(vidObj);
+
 %% Initialize simulation
 global dt Nb N h rho mu ip im a;
 global kp km dtheta K;
@@ -29,5 +42,10 @@ for clock=1:clockmax
   axis manual
   drawnow
   hold off
+  frame = getframe(gcf); 
+  writeVideo(vidObj, frame);
 end
 
+
+close(vidObj);
+disp(['Video saved as: ' videoName]);
