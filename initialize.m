@@ -6,11 +6,11 @@ N=64 % Number of grid cells
 h=L/N % Grid spacing                                    % m
 ip=[(2:N),1] % Grid index shifted left
 im=[N,(1:(N-1))] % Grid index shifted right
-K = 2e5;                                                % N/m²
+K = 1e6;                                                % N/m²
 rho=1; % Fluid density                                  % kg/m³
 mu=0.01; % viscosity                                    % kg/(m·s)
 tmax=10; % Run until time                               % s
-dt=5e-4; % Time step                                    % s
+dt=2e-4; % Time step                                    % s
 clockmax=ceil(tmax/dt);
 
 %% Initialize the visualization options
@@ -24,7 +24,7 @@ viz_option = "lagrangian particles"; % all options: "vorticity", "lagrangian par
 
 % Assume the 假设线段长度 L0，pivot点位于 Lp
 %f0=1e2;
-f0=1e-1;
+f0=2e0;
 L0 = L/2;
 Px=L/2;
 Py=L/2;
@@ -32,8 +32,8 @@ Nb = ceil(L0/(h/2));
 ds = L0/(Nb-1);
 s = (0:(Nb-1))*ds;
 Lp = (Nb-1)/2*ds; %L0/2;
-m0 = 2e0;            % 线密度(可根据需要调整)
-theta0 = pi/4;
+m0 = 5e0;            % 线密度(可根据需要调整)
+theta0 = pi/3;
 X = zeros(Nb,2);
 X(:,1) = Px + (s - Lp)*cos(theta0);
 X(:,2) = Py + (s - Lp)*sin(theta0);
@@ -45,7 +45,7 @@ omega = 0;   % 初始角速度
 
 
 u=zeros(N,N,2);
-U0 = 0.8;  % 设定水平向右的常数速度，比如1 m/s，可根据需要调整
+U0 = 0;  % 设定水平向右的常数速度，比如1 m/s，可根据需要调整
 u(:,:,1) = U0;  % x方向速度全部设为 U0
 u(:,:,2) = 0;   % y方向速度为 0
 %j1=0:(N-1); % Initialize fluid velocity as (0,sin(2*pi*x/L))
