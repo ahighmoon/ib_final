@@ -31,6 +31,21 @@ frame = getframe(gcf);
 writeVideo(vidObj, frame);
 constantFlow = false;  % 开启常数流场测试模式
 
+record_interval = round(viz_gap/dt);  % 例如：每隔约12~13步记录一次
+num_records = floor(clockmax/record_interval);
+t_rec      = zeros(num_records, 1);   % 记录时间
+theta_rec  = zeros(num_records, 1);   % 记录角度 theta (rad)
+omega_rec  = zeros(num_records, 1);   % 记录角速度 omega (rad/s)
+tau_rec    = zeros(num_records, 1);   % 记录净扭矩 tau (N.m)
+error_rec  = zeros(num_records, 1);   % 记录刚性误差（例如：目标与实际位置的最大差值）
+record_index = 0;  % 数据记录的索引
+
+% Steady-state detection parameters
+tol_omega = 1e-4;         % 角速度阈值 (rad/s)
+tol_tau   = 1e-4;         % 净转矩阈值 (N.m)
+steady_count = 0;         % 连续满足稳态条件的步数计数器
+required_steady_steps = 100;  % 连续满足要求的步数（可根据问题尺度调整）
+
 %% Run simulation
 for clock=1:clockmax
     if ~constantFlow
@@ -65,6 +80,30 @@ for clock=1:clockmax
     else
         % constantFlow 模式：保持流场不变
         uu = u;  % 直接使用常数流场
+    end
+
+    % 数据记录（每隔 record_interval 步记录一次）
+    if mod(clock, record_interval) == 0
+        record_index = record_index + 1;
+        t_rec(record_index)     = clock * dt;
+        theta_rec(record_index) = theta;
+        omega_rec(record_index) = omega;
+        tau_rec(record_index)   = tau_mid;  % 此处记录半步计算的净转矩
+        % 记录刚性误差：目标位置 Z_mid 与中间位置 XX 的最大差值
+        error_rec(record_index) = norm(Z_mid - XX, inf);
+    end
+
+    % Steady-state check: 当角速度和净转矩均低于阈值时，增加计数，否则重置
+    if abs(omega) < tol_omega && abs(tau_mid) < tol_tau
+        steady_count = steady_count + 1;
+    else
+        steady_count = 0;
+    end
+    
+    % 如果连续满足稳态条件的步数达到要求，则退出仿真
+    if steady_count >= required_steady_steps
+        fprintf('Steady state detected at time %.4f s (after %d steps)\n', clock*dt, clock);
+        break;
     end
 
     % visualize only at fixed interval of time, not every timestep
@@ -123,3 +162,37 @@ end
 
 close(vidObj);
 disp(['Video saved as: ' videoName]);
+
+
+
+% Data analysis: Plot recorded data after simulation
+figure;
+subplot(2,2,1);
+plot(t_rec, theta_rec, 'LineWidth', 1.5);
+xlabel('Time (s)');
+ylabel('\theta (rad)');
+title('Rod Angle vs. Time');
+grid on;
+
+subplot(2,2,2);
+plot(t_rec, omega_rec, 'LineWidth', 1.5);
+xlabel('Time (s)');
+ylabel('\omega (rad/s)');
+title('Angular Velocity vs. Time');
+grid on;
+
+subplot(2,2,3);
+plot(t_rec, tau_rec, 'LineWidth', 1.5);
+xlabel('Time (s)');
+ylabel('\tau (N.m)');
+title('Net Torque vs. Time');
+grid on;
+
+subplot(2,2,4);
+plot(t_rec, error_rec, 'LineWidth', 1.5);
+xlabel('Time (s)');
+ylabel('Max Rigidity Error (m)');
+title('Max Rigidity Error vs. Time');
+grid on;
+
+fprintf('Final stable rod angle: %.4f degrees\n', rad2deg(theta_rec(end)));
