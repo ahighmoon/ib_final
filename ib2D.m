@@ -15,6 +15,7 @@ vidObj = VideoWriter(videoName, 'Motion JPEG AVI');
 vidObj.FrameRate = 40;
 vidObj.Quality = 95;
 open(vidObj);
+viz_gap = 0.0025;
 
 %% Initialize simulation
 global dt Nb N h rho mu ip im a;
@@ -53,66 +54,69 @@ for clock=1:clockmax
     Ry = XX(:,2) - Py;
     tau_mid = sum((Rx.*F_mid(:,2) - Ry.*F_mid(:,1)) * ds);
 
-    % 全步更新omega和theta
-    omega_new = omega + (dt/I0)*tau_mid;
-    theta_new = theta + dt*omega_new;
+    % 半步更新omega，用它更新theta用于下个timestep
+    omega_mid = omega + (dt/(2*I0))*tau_mid;
+    theta_new = theta + dt*omega_mid;
 
-    % 更新X,theta,omega用于下个时间步
+    % 更新X,omega用于下个时间步
     X = X_new;
+    omega = omega_mid;
     theta = theta_new;
-    omega = omega_new;
     else
         % constantFlow 模式：保持流场不变
         uu = u;  % 直接使用常数流场
     end
 
-    switch viz_option
-        case 'vorticity'
-            vorticity=(u(ip,:,2)-u(im,:,2)-u(:,ip,1)+u(:,im,1))/(2*h);
-            contour(xgrid,ygrid,vorticity,values)
-            hold on
-            plot(X(:,1),X(:,2),'ko')
-            axis([0,L,0,L])
-            caxis(valminmax)
-            axis equal
-            axis manual
-            drawnow
-            hold off
-            frame = getframe(gcf); 
-            writeVideo(vidObj, frame);
-        case "lagrangian particles"
-            particle_vel1 = particle_interp(u, particles);
-            particles_temp = particles + 0.5*dt*particle_vel1;
-            particle_vel2 = particle_interp(uu, particles_temp);
-            particles = particles + dt*particle_vel2;
-            particles = mod(particles, L);
-            speed = sqrt(particle_vel2(:,1).^2 + particle_vel2(:,2).^2);
-            speed_min = 0; speed_max = 2;
-            avg_speed = mean(speed);
-            grid_speed = sqrt(u(:, :, 1).^2 + u(:, :, 2).^2);
-            max_grid_speed = max(grid_speed(:));
-            CFL_val = (max_grid_speed * dt) / h;
-
-            cla
-            scatter(particles(:,1), particles(:,2), 10, speed, 'filled', 'MarkerEdgeColor', 'none') 
-            hold on
-            plot(X(:,1),X(:,2),'ko')
-            plot(pivot(1), pivot(2), 'ro', 'MarkerSize', 8, 'LineWidth', 2)
-            axis([0 L 0 L])
-            axis square;
-            axis manual
-            %colormap(jet)
-            colormap(parula)
-            colorbar
-            clim([speed_min speed_max])
-            
-            title(sprintf('Time = %.2f, Avg Speed = %.2f, CFL = %.1f', clock * dt, avg_speed, CFL_val))
-            drawnow
-            hold off
-            frame = getframe(gcf); 
-            writeVideo(vidObj, frame);
-        otherwise
-            error('Invalid visualization mode.');
+    % visualize only at fixed interval of time, not every timestep
+    if mod(clock*dt/viz_gap, 1) == 0
+        switch viz_option
+            case 'vorticity'
+                vorticity=(u(ip,:,2)-u(im,:,2)-u(:,ip,1)+u(:,im,1))/(2*h);
+                contour(xgrid,ygrid,vorticity,values)
+                hold on
+                plot(X(:,1),X(:,2),'ko')
+                axis([0,L,0,L])
+                caxis(valminmax)
+                axis equal
+                axis manual
+                drawnow
+                hold off
+                frame = getframe(gcf); 
+                writeVideo(vidObj, frame);
+            case "lagrangian particles"
+                particle_vel1 = particle_interp(u, particles);
+                particles_temp = particles + 0.5*dt*particle_vel1;
+                particle_vel2 = particle_interp(uu, particles_temp);
+                particles = particles + dt*particle_vel2;
+                particles = mod(particles, L);
+                speed = sqrt(particle_vel2(:,1).^2 + particle_vel2(:,2).^2);
+                speed_min = 0; speed_max = 2;
+                avg_speed = mean(speed);
+                grid_speed = sqrt(u(:, :, 1).^2 + u(:, :, 2).^2);
+                max_grid_speed = max(grid_speed(:));
+                CFL_val = (max_grid_speed * dt) / h;
+    
+                cla
+                scatter(particles(:,1), particles(:,2), 10, speed, 'filled', 'MarkerEdgeColor', 'none') 
+                hold on
+                plot(X(:,1),X(:,2),'ko')
+                plot(pivot(1), pivot(2), 'ro', 'MarkerSize', 8, 'LineWidth', 2)
+                axis([0 L 0 L])
+                axis square;
+                axis manual
+                %colormap(jet)
+                colormap(parula)
+                colorbar
+                clim([speed_min speed_max])
+                
+                title(sprintf('Time = %.2f, Avg Speed = %.2f, CFL = %.1f', clock * dt, avg_speed, CFL_val))
+                drawnow
+                hold off
+                frame = getframe(gcf); 
+                writeVideo(vidObj, frame);
+            otherwise
+                error('Invalid visualization mode.');
+        end
     end
 end
 
