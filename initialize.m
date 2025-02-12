@@ -114,3 +114,23 @@ switch viz_option
     otherwise
         error('Invalid visualization mode.');
 end
+
+%% 扩展分析数据结构
+global analysis_data vorticity_snapshots;
+num_records = ceil(tmax / (dt * record_interval)); % 使用局部变量计算
+analysis_data = struct(...
+    'time', zeros(num_records, 1), ... % 使用 num_records 而不是之前的引用
+    'angle', zeros(num_records, 1), ...
+    'omega', zeros(num_records, 1), ...
+    'torque', zeros(num_records, 1), ...
+    'upper_speed', zeros(num_records, 1), ...   % 上半区平均速度
+    'lower_speed', zeros(num_records, 1), ...   % 下半区平均速度
+    'pressure_diff', zeros(num_records, 1), ...  % 上下压力差
+    'vorticity_peak', zeros(num_records, 1) ...  % 棒后涡量极值
+);
+% 定义速度/压力探测区域
+[X_grid, Y_grid] = meshgrid(linspace(0, L, N), linspace(0, L, N));
+is_upper = Y_grid > L/2;  % 上半区域掩膜（N×N逻辑矩阵）
+is_lower = Y_grid < L/2;  % 下半区域掩膜
+% 新增：定义用于存储涡量场快照的 cell 数组，每个元素保存一个时刻的涡量场矩阵
+vorticity_snapshots = cell(num_records, 1);
