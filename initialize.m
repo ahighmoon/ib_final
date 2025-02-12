@@ -8,13 +8,13 @@ ip=[(2:N),1] % Grid index shifted left
 im=[N,(1:(N-1))] % Grid index shifted right
 K = 1e6;                                                % N/m²
 rho=1; % Fluid density                                  % kg/m³
-mu=0.01; % viscosity                                    % kg/(m·s)
-tmax=100; % Run until time                               % s
+mu=0.05; % viscosity                                    % kg/(m·s)
+tmax=40; % Run until time                               % s
 dt=2e-4; % Time step                                    % s
 clockmax=ceil(tmax/dt);
 
 %% 数据记录参数
-viz_gap = 0.0025; % 可视化时间间隔 (s)
+viz_gap = 0.01; % 可视化时间间隔 (s)
 record_interval = round(viz_gap / dt); % 数据记录步长间隔
 
 %% Initialize the visualization options
@@ -29,15 +29,15 @@ viz_option = "lagrangian particles"; % all options: "vorticity", "lagrangian par
 % Assume the 假设线段长度 L0，pivot点位于 Lp
 %f0=1e2;
 f0=5e-1; % 1e0;
-L0 = L/4;
+L0 = L/2;
 Px=L/2;
 Py=L/2;
 Nb = ceil(L0/(h/2));
 ds = L0/Nb;
 s = (0:(Nb-1))*ds;
-pivot_frac = 0;
+pivot_frac = 1/2;
 Lp = pivot_frac*L0;
-m0 = 2e0;            % 线密度(可根据需要调整)
+m0 = 1e0;            % 线密度(可根据需要调整)
 theta0 = pi/6;
 X = zeros(Nb,2);
 X(:,1) = Px + (s - Lp)*cos(theta0);
