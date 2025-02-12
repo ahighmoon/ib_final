@@ -62,7 +62,7 @@ for clock=1:clockmax
     ff = vec_spread(F_mid,XX);
     ff(:,:,1) = ff(:,:,1) + f0;
 
-    tau_mid = sum( (rod - Lp)' .* ( -sin(theta_mid) * F_mid(:,1) + cos(theta_mid) * F_mid(:,2) ) * ds );
+    tau_mid = - sum( (rod - Lp)' .* ( -sin(theta_mid) * F_mid(:,1) + cos(theta_mid) * F_mid(:,2) ) * ds );
 
     omega_mid = omega + (dt/(2*I0))*tau_mid;
 

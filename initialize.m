@@ -28,8 +28,8 @@ viz_option = "lagrangian particles"; % all options: "vorticity", "lagrangian par
 
 % Assume the 假设线段长度 L0，pivot点位于 Lp
 %f0=1e2;
-f0=2e0;
-L0 = L/2;
+f0=1e0;
+L0 = L/4;
 Px=L/2;
 Py=L/2;
 Nb = ceil(L0/(h/2));
