@@ -163,6 +163,24 @@ for clock=1:clockmax
                 scatter(particles(:,1), particles(:,2), 10, speed, 'filled', 'MarkerEdgeColor', 'none') 
                 hold on
                 plot(X(:,1),X(:,2),'ko')
+
+                % Add force visualization
+                %quiver(X(:,1), X(:,2), F_mid(:,1), F_mid(:,2), 4.5, 'g-', 'LineWidth', 1)
+                pivot_idx = floor(Nb/2);  % 因为 Lp = (Nb-1)/2*ds，所以pivot点在中间
+                % 使用整数索引来区分前后两段
+                front_indices = 1:pivot_idx;
+                back_indices = (pivot_idx+1):Nb;
+                % 计算前后两段的合力
+                front_force = sum(F_mid(front_indices,:), 1);
+                back_force = sum(F_mid(back_indices,:), 1);
+                % 计算前后两段的力学中心
+                front_center = mean(X(front_indices,:), 1);
+                back_center = mean(X(back_indices,:), 1);
+                % 在力学中心绘制合力箭头
+                scale_factor = 0.003*L;
+                quiver(front_center(1), front_center(2), front_force(1), front_force(2), scale_factor, 'b-', 'LineWidth', 2)
+                quiver(back_center(1), back_center(2), back_force(1), back_force(2), scale_factor, 'g-', 'LineWidth', 2)
+
                 plot(pivot(1), pivot(2), 'ro', 'MarkerSize', 8, 'LineWidth', 2)
                 axis([0 L 0 L])
                 axis square;
