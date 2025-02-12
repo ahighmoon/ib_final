@@ -13,6 +13,10 @@ tmax=10; % Run until time                               % s
 dt=2e-4; % Time step                                    % s
 clockmax=ceil(tmax/dt);
 
+%% 数据记录参数
+viz_gap = 0.0025; % 可视化时间间隔 (s)
+record_interval = round(viz_gap / dt); % 数据记录步长间隔
+
 %% Initialize the visualization options
 viz_option = "lagrangian particles"; % all options: "vorticity", "lagrangian particles"
 

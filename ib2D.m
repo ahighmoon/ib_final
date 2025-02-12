@@ -21,7 +21,8 @@ global dt Nb N h rho mu ip im a;
 global kp km dtheta K;
 global f0;
 global viz_options particles;
-global theta omega I0 L0 Lp m0 s ds Px Py pivot
+global theta omega I0 L0 Lp m0 s ds Px Py pivot;
+global viz_gap;
 initialize;
 rod=s;
 init_a;
@@ -66,6 +67,7 @@ for clock=1:clockmax
         uu = u;  % 直接使用常数流场
     end
 
+    if mod(clock*dt/viz_gap, 1) == 0
     switch viz_option
         case 'vorticity'
             vorticity=(u(ip,:,2)-u(im,:,2)-u(:,ip,1)+u(:,im,1))/(2*h);
@@ -113,6 +115,7 @@ for clock=1:clockmax
             writeVideo(vidObj, frame);
         otherwise
             error('Invalid visualization mode.');
+    end
     end
 end
 
