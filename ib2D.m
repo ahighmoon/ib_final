@@ -153,7 +153,7 @@ for clock=1:clockmax
                 particles = particles + dt*particle_vel2;
                 particles = mod(particles, L);
                 speed = sqrt(particle_vel2(:,1).^2 + particle_vel2(:,2).^2);
-                speed_min = 0; speed_max = 2;
+                speed_min = 0; speed_max = 3;
                 avg_speed = mean(speed);
                 grid_speed = sqrt(u(:, :, 1).^2 + u(:, :, 2).^2);
                 max_grid_speed = max(grid_speed(:));
@@ -207,6 +207,14 @@ disp(['Video saved as: ' videoName]);
 
 
 % Data analysis: Plot recorded data after simulation
+
+% 截取记录数据，只保留有效部分
+t_rec = t_rec(1:record_index);
+theta_rec = theta_rec(1:record_index);
+omega_rec = omega_rec(1:record_index);
+tau_rec = tau_rec(1:record_index);
+error_rec = error_rec(1:record_index);
+
 figure;
 subplot(2,2,1);
 plot(t_rec, theta_rec, 'LineWidth', 1.5);
