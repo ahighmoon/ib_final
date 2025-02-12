@@ -48,39 +48,31 @@ required_steady_steps = 100;  % 连续满足要求的步数（可根据问题尺
 
 %% Run simulation
 for clock=1:clockmax
-    if ~constantFlow
-        % 这里是原来的刚棒和外力更新代码
-    % 1. 计算theta_mid, 使用当前theta和omega半步前进
+% prelimnary substep from n to n+ 1/2
+    XX = X + (dt/2)*vec_interp(u,X);
+
     theta_mid = theta + 0.5*dt*omega;
+
     global Z_mid;
     Z_mid = zeros(Nb,2);
     Z_mid(:,1) = Px + (rod - Lp)*cos(theta_mid);
     Z_mid(:,2) = Py + (rod - Lp)*sin(theta_mid);
 
-    XX = X + (dt/2)*vec_interp(u,X); % 用中点速度更新X的中点位置
     F_mid = Force(XX);              % = K(Z_mid - XX)
     ff = vec_spread(F_mid,XX);
     ff(:,:,1) = ff(:,:,1) + f0;
+
+    tau_mid = sum( (rod - Lp)' .* ( -sin(theta_mid) * F_mid(:,1) + cos(theta_mid) * F_mid(:,2) ) * ds );
+
+    omega_mid = omega + (dt/(2*I0))*tau_mid;
+
+    % solve for fluid field
     [u,uu] = fluid(u,ff);
-    X_new = X + dt*vec_interp(uu,XX); % 全步X更新（使用中点u）
 
-    % 用X_new和F_mid计算中点扭矩tau_mid
-    Rx = XX(:,1) - Px;
-    Ry = XX(:,2) - Py;
-    tau_mid = sum((Rx.*F_mid(:,2) - Ry.*F_mid(:,1)) * ds);
-
-    % 全步更新omega和theta
-    omega_new = omega + (dt/I0)*tau_mid;
-    theta_new = theta + dt*omega_new;
-
-    % 更新X,theta,omega用于下个时间步
-    X = X_new;
-    theta = theta_new;
-    omega = omega_new;
-    else
-        % constantFlow 模式：保持流场不变
-        uu = u;  % 直接使用常数流场
-    end
+    % full timestep update
+    X = X + dt*vec_interp(uu,XX);
+    theta = theta + dt*omega_mid;
+    omega = omega + dt/I0*tau_mid;
 
     % 数据记录（每隔 record_interval 步记录一次）
     if record && mod(clock, record_interval) == 0
