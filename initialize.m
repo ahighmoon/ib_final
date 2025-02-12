@@ -9,7 +9,7 @@ im=[N,(1:(N-1))] % Grid index shifted right
 K = 1e6;                                                % N/m²
 rho=1; % Fluid density                                  % kg/m³
 mu=0.01; % viscosity                                    % kg/(m·s)
-tmax=10; % Run until time                               % s
+tmax=100; % Run until time                               % s
 dt=2e-4; % Time step                                    % s
 clockmax=ceil(tmax/dt);
 
@@ -28,17 +28,17 @@ viz_option = "lagrangian particles"; % all options: "vorticity", "lagrangian par
 
 % Assume the 假设线段长度 L0，pivot点位于 Lp
 %f0=1e2;
-f0=1e0;
+f0=5e-1; % 1e0;
 L0 = L/4;
 Px=L/2;
 Py=L/2;
 Nb = ceil(L0/(h/2));
 ds = L0/Nb;
 s = (0:(Nb-1))*ds;
-pivot_frac = 1/2;
+pivot_frac = 0;
 Lp = pivot_frac*L0;
 m0 = 5e0;            % 线密度(可根据需要调整)
-theta0 = pi/3;
+theta0 = pi/6;
 X = zeros(Nb,2);
 X(:,1) = Px + (s - Lp)*cos(theta0);
 X(:,2) = Py + (s - Lp)*sin(theta0);
