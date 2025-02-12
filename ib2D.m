@@ -166,10 +166,9 @@ for clock=1:clockmax
 
                 % Add force visualization
                 %quiver(X(:,1), X(:,2), F_mid(:,1), F_mid(:,2), 4.5, 'g-', 'LineWidth', 1)
-                pivot_idx = floor(Nb/2);  % 因为 Lp = (Nb-1)/2*ds，所以pivot点在中间
-                % 使用整数索引来区分前后两段
-                front_indices = 1:pivot_idx;
-                back_indices = (pivot_idx+1):Nb;
+                % 根据杆上参数 s 和给定的 pivot 参数位置 Lp 分割杆的两部分
+                front_indices = find(rod < Lp);   % pivot 后侧：s 值小于 Lp 的点
+                back_indices = find(rod >= Lp); % pivot 前侧：s 值大于等于 Lp 的点
                 % 计算前后两段的合力
                 front_force = sum(F_mid(front_indices,:), 1);
                 back_force = sum(F_mid(back_indices,:), 1);
@@ -177,7 +176,7 @@ for clock=1:clockmax
                 front_center = mean(X(front_indices,:), 1);
                 back_center = mean(X(back_indices,:), 1);
                 % 在力学中心绘制合力箭头
-                scale_factor = 0.003*L;
+                scale_factor = 0.002*L;
                 quiver(front_center(1), front_center(2), front_force(1), front_force(2), scale_factor, 'b-', 'LineWidth', 2)
                 quiver(back_center(1), back_center(2), back_force(1), back_force(2), scale_factor, 'g-', 'LineWidth', 2)
 
