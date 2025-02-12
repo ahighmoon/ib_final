@@ -30,8 +30,8 @@ init_a;
 frame = getframe(gcf); 
 writeVideo(vidObj, frame);
 constantFlow = false;  % 开启常数流场测试模式
-
 record = true;
+
 num_records = floor(clockmax/record_interval);
 t_rec      = zeros(num_records, 1);   % 记录时间
 theta_rec  = zeros(num_records, 1);   % 记录角度 theta (rad)
@@ -125,6 +125,20 @@ for clock=1:clockmax
         vorticity_snapshots{record_index} = vort_field;
     end
 
+    % % Steady-state check: 当角速度和净转矩均低于阈值时，增加计数，否则重置
+    % if abs(omega) < tol_omega && abs(tau_mid) < tol_tau
+    %     steady_count = steady_count + 1;
+    % else
+    %     steady_count = 0;
+    % end
+    % 
+    % % 如果连续满足稳态条件的步数达到要求，则退出仿真
+    % if steady_count >= required_steady_steps
+    %     fprintf('Steady state detected at time %.4f s (after %d steps)\n', clock*dt, clock);
+    %     break;
+    % end
+
+    % visualize only at fixed interval of time, not every timestep
     if mod(clock*dt/viz_gap, 1) == 0
         switch viz_option
             case 'vorticity'
@@ -147,7 +161,7 @@ for clock=1:clockmax
                 particles = particles + dt*particle_vel2;
                 particles = mod(particles, L);
                 speed = sqrt(particle_vel2(:,1).^2 + particle_vel2(:,2).^2);
-                speed_min = 0; speed_max = 2;
+                speed_min = 0; speed_max = 6;
                 avg_speed = mean(speed);
                 grid_speed = sqrt(u(:, :, 1).^2 + u(:, :, 2).^2);
                 max_grid_speed = max(grid_speed(:));
@@ -180,7 +194,6 @@ end
 
 close(vidObj);
 disp(['Video saved as: ' videoName]);
-
 
 
 
