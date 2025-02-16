@@ -13,9 +13,9 @@ tmax=40; % Run until time                               % s
 dt=2e-4; % Time step                                    % s
 clockmax=ceil(tmax/dt);
 
-%% 数据记录参数
-viz_gap = 0.01; % 可视化时间间隔 (s)
-record_interval = round(viz_gap / dt); % 数据记录步长间隔
+%% Data recording parameters
+viz_gap = 0.01;                         % Visualization time gap
+record_interval = round(viz_gap / dt);  % Data recording step interval
 
 %% Initialize the visualization options
 viz_option = "lagrangian particles"; % all options: "vorticity", "lagrangian particles"
@@ -26,7 +26,7 @@ viz_option = "lagrangian particles"; % all options: "vorticity", "lagrangian par
 %theta = k'*dtheta;
 %X = (L/2) + (L/4)*[cos(theta), sin(theta)];
 
-% Assume the 假设线段长度 L0，pivot点位于 Lp
+% Assume the rod has a length of L0 and the pivot is located at Lp
 %f0=1e2;
 f0=5e-1; % 1e0;
 L0 = L/2;
@@ -35,9 +35,9 @@ Py=L/2;
 Nb = ceil(L0/(h/2));
 ds = L0/Nb;
 s = (0:(Nb-1))*ds;
-pivot_frac = 1/2;
+pivot_frac = 38/100;
 Lp = pivot_frac*L0;
-m0 = 1e0;            % 线密度(可根据需要调整)
+m0 = 1e0;
 theta0 = pi/4;
 X = zeros(Nb,2);
 X(:,1) = Px + (s - Lp)*cos(theta0);
@@ -45,14 +45,14 @@ X(:,2) = Py + (s - Lp)*sin(theta0);
 pivot = [Px;Py];
 % I0 = m0 * integral_0^L0 (s - Lp)^2 ds = m0 * [ ( (L0 - Lp)^3 + (Lp)^3 ) / 3 ]
 I0 = m0*((L0 - Lp)^3 + Lp^3)/3; 
-theta = theta0;   % 初始角度
-omega = 0;   % 初始角速度
+theta = theta0;
+omega = 0;
 
 
 u=zeros(N,N,2);
-U0 = 0;  % 设定水平向右的常数速度，比如1 m/s，可根据需要调整
-u(:,:,1) = U0;  % x方向速度全部设为 U0
-u(:,:,2) = 0;   % y方向速度为 0
+U0 = 0;
+u(:,:,1) = U0;
+u(:,:,2) = 0;
 %j1=0:(N-1); % Initialize fluid velocity as (0,sin(2*pi*x/L))
 %x=j1'*h;
 %u(j1+1,:,2)=sin(2*pi*x/L)*ones(1,N);
@@ -116,22 +116,21 @@ switch viz_option
         error('Invalid visualization mode.');
 end
 
-%% 扩展分析数据结构
+%% Expand the data structure for analysis
 global analysis_data vorticity_snapshots;
-num_records = ceil(tmax / (dt * record_interval)); % 使用局部变量计算
+num_records = ceil(tmax / (dt * record_interval));
 analysis_data = struct(...
-    'time', zeros(num_records, 1), ... % 使用 num_records 而不是之前的引用
+    'time', zeros(num_records, 1), ... 
     'angle', zeros(num_records, 1), ...
     'omega', zeros(num_records, 1), ...
     'torque', zeros(num_records, 1), ...
-    'upper_speed', zeros(num_records, 1), ...   % 上半区平均速度
-    'lower_speed', zeros(num_records, 1), ...   % 下半区平均速度
-    'pressure_diff', zeros(num_records, 1), ...  % 上下压力差
-    'vorticity_peak', zeros(num_records, 1) ...  % 棒后涡量极值
+    'upper_speed', zeros(num_records, 1), ...   % Average speed in the upper half area
+    'lower_speed', zeros(num_records, 1), ...   % Average speed in the lower half area
+    'pressure_diff', zeros(num_records, 1), ...  % Pressure difference between the upper and lower
+    'vorticity_peak', zeros(num_records, 1) ...  % Extreme value of vorticity behind the rod
 );
-% 定义速度/压力探测区域
+% Define the velocity/pressure detection area
 [X_grid, Y_grid] = meshgrid(linspace(0, L, N), linspace(0, L, N));
-is_upper = Y_grid > L/2;  % 上半区域掩膜（N×N逻辑矩阵）
-is_lower = Y_grid < L/2;  % 下半区域掩膜
-% 新增：定义用于存储涡量场快照的 cell 数组，每个元素保存一个时刻的涡量场矩阵
+is_upper = Y_grid > L/2;  % Mask for the upper half area (N×N logical matrix)
+is_lower = Y_grid < L/2;  % Mask for the lower half area
 vorticity_snapshots = cell(num_records, 1);
